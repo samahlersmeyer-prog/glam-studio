@@ -335,7 +335,7 @@ const ACC={
   cherry:{n:'Cherries',t:['cute','summer'],d:()=>BOTH(`<path d="M69 82L66 92M69 82L73 93" stroke="#3f8f3a" stroke-width="1.3" fill="none"/><circle cx="66" cy="94" r="3.4" fill="#d7263d"/><circle cx="73" cy="95" r="3.4" fill="#d7263d"/>`)}},
  face:{none:NONE,
   hearts:{n:'Heart shades',t:['summer','cool','bold'],d:()=>HEART(88,72,8,'#ff4fa3','opacity=".92" stroke="#3a1f4d" stroke-width="1.4"')+HEART(112,72,8,'#ff4fa3','opacity=".92" stroke="#3a1f4d" stroke-width="1.4"')+`<path d="M95 70Q100 66 105 70" stroke="#3a1f4d" stroke-width="2" fill="none"/>`},
-  round:{n:'Round glasses',t:['cute','casual'],d:()=>`<circle cx="88" cy="72" r="9" fill="rgba(255,255,255,.2)" stroke="#3a1f4d" stroke-width="2.2"/><circle cx="112" cy="72" r="9" fill="rgba(255,255,255,.2)" stroke="#3a1f4d" stroke-width="2.2"/><path d="M97 71Q100 68 103 71" stroke="#3a1f4d" stroke-width="2" fill="none"/>`},
+  round:{n:'Round glasses',t:['cute','casual'],d:()=>`<path d="M79 71L69 69M121 71L131 69" stroke="#3a1f4d" stroke-width="2"/><circle cx="88" cy="72" r="9" fill="rgba(255,255,255,.2)" stroke="#3a1f4d" stroke-width="2.2"/><circle cx="112" cy="72" r="9" fill="rgba(255,255,255,.2)" stroke="#3a1f4d" stroke-width="2.2"/><path d="M97 71Q100 68 103 71" stroke="#3a1f4d" stroke-width="2" fill="none"/>`},
   starshades:{n:'Star shades',t:['sparkle','bold'],d:()=>STAR(88,72,11,'#8a3fd1','opacity=".92" stroke="#ffd23f" stroke-width="1.6"')+STAR(112,72,11,'#8a3fd1','opacity=".92" stroke="#ffd23f" stroke-width="1.6"')}},
  hand:{none:NONE,
   purse:{n:'Purse',t:['fancy'],d:()=>`<path d="M136 242Q146 222 156 242" stroke="#3a1f4d" stroke-width="2" fill="none"/><rect x="130" y="240" width="32" height="24" rx="7" fill="#ff4fa3" stroke="#c22f7c" stroke-width="1.6"/><circle cx="146" cy="249" r="3" fill="#ffd23f"/>`},
@@ -369,7 +369,7 @@ for(const k in DEF){ // repair stale saved values
  const bad=(k==='hairS'&&!HAIR[L[k]])||(k==='topS'&&!TOPS[L[k]])||(k==='botS'&&!BOTS[L[k]])||(k==='shoeS'&&!SHOES[L[k]])||(k==='dressS'&&L[k]&&!DRESS[L[k]])||(ACC[k]&&!ACC[k][L[k]]);
  if(bad)L[k]=DEF[k];
 }
-function bodySVG(sk){const arm='stroke="'+sk+'" stroke-width="13" stroke-linecap="round" fill="none"';return `<path d="M68 128Q55 180 58 230" ${arm}/><path d="M132 128Q145 180 142 230" ${arm}/><circle cx="58" cy="234" r="7.5" fill="${sk}"/><circle cx="142" cy="234" r="7.5" fill="${sk}"/><path d="M90 236L88 362M110 236L112 362" stroke="${sk}" stroke-width="17" stroke-linecap="round"/><ellipse cx="87" cy="368" rx="10" ry="6" fill="${sk}"/><ellipse cx="113" cy="368" rx="10" ry="6" fill="${sk}"/><path d="M72 122Q100 114 128 122L122 200Q124 222 128 240L72 240Q76 222 78 200Z" fill="${sk}"/><rect x="92" y="94" width="16" height="32" rx="6" fill="${sk}"/><ellipse cx="69" cy="74" rx="5" ry="8" fill="${sk}" stroke="${sh(sk,-.18)}" stroke-width="1.2"/><ellipse cx="131" cy="74" rx="5" ry="8" fill="${sk}" stroke="${sh(sk,-.18)}" stroke-width="1.2"/><ellipse cx="100" cy="70" rx="31" ry="35" fill="${sk}" stroke="${sh(sk,-.18)}" stroke-width="1.2"/>`}
+function bodySVG(sk){const arm='stroke="'+sk+'" stroke-width="13" stroke-linecap="round" fill="none"';return `<path d="M68 128Q55 180 58 230" ${arm}/><path d="M132 128Q145 180 142 230" ${arm}/><circle cx="58" cy="234" r="7.5" fill="${sk}"/><circle cx="142" cy="234" r="7.5" fill="${sk}"/><path d="M90 236L88 362M110 236L112 362" stroke="${sk}" stroke-width="17" stroke-linecap="round"/><ellipse cx="87" cy="368" rx="10" ry="6" fill="${sk}"/><ellipse cx="113" cy="368" rx="10" ry="6" fill="${sk}"/><path d="M72 122Q100 114 128 122L122 200Q124 222 128 240L72 240Q76 222 78 200Z" fill="${sk}"/><rect x="92" y="94" width="16" height="32" rx="6" fill="${sk}"/><path d="M92 98Q100 112 108 98L108 110Q100 116 92 110Z" fill="${sh(sk,-.14)}"/><ellipse cx="69" cy="74" rx="5" ry="8" fill="${sk}" stroke="${sh(sk,-.18)}" stroke-width="1.2"/><ellipse cx="131" cy="74" rx="5" ry="8" fill="${sk}" stroke="${sh(sk,-.18)}" stroke-width="1.2"/><ellipse cx="100" cy="70" rx="31" ry="35" fill="${sk}" stroke="${sh(sk,-.18)}" stroke-width="1.2"/>`}
 function faceSVG(sk,hc){
  const E=EYES[L.eye].c,Li=LIPS[L.lip].c||sh(sk,-.22),B=BLUSH[L.blush].c,br=sh(hc,-.25);let s='';
  if(E)s+=`<ellipse cx="88" cy="67" rx="9" ry="6" fill="${E}" opacity=".75"/><ellipse cx="112" cy="67" rx="9" ry="6" fill="${E}" opacity=".75"/>`;
@@ -383,11 +383,22 @@ function faceSVG(sk,hc){
  if(L.gems)s+=BOTH(STAR(77,79,3.6,'#fff7a8','stroke="#e9b949" stroke-width=".6"')+`<circle cx="81" cy="86" r="1.4" fill="#b9a3ff"/><circle cx="74" cy="85" r="1.1" fill="#6cc4ff"/>`);
  return s;
 }
+let clipN=0;
+const HAT_LINE={sunhat:40,beanie:47}; // y where the hat meets the head
+const TUCKED=['puffs','bun']; // updos that disappear under a hat
+const HAIR_SHINE=k=>k==='curls'?'':`<path d="M80 41Q96 33 116 38" stroke="#fff" stroke-opacity=".35" stroke-width="3" fill="none" stroke-linecap="round"/>`;
 function charSVG(){
- const sk=SKINS[L.skin],hc=HAIRC[L.hairC].c,H=HAIR[L.hairS];let s=H.back(hc)+bodySVG(sk);
+ const sk=SKINS[L.skin],hc=HAIRC[L.hairC].c,H=HAIR[L.hairS],cut=HAT_LINE[L.head],id='hc'+(++clipN);
+ let back=H.back(hc),front=H.front(hc)+HAIR_SHINE(L.hairS),defs='';
+ if(cut){ // hair above the hat line is tucked under the hat
+  defs=`<defs><clipPath id="${id}"><rect x="0" y="${cut}" width="200" height="400"/></clipPath></defs>`;
+  back=TUCKED.includes(L.hairS)?'':`<g clip-path="url(#${id})">${back}</g>`;
+  front=`<g clip-path="url(#${id})">${front}</g>`;
+ }
+ let s=defs+back+bodySVG(sk);
  if(L.dressS){if(L.dressS==='coat')s+=BOTS.leggings.d('#2b2233');s+=DRESS[L.dressS].d(COLORS[L.dressC].c)}
  else s+=BOTS[L.botS].d(COLORS[L.botC].c)+TOPS[L.topS].d(COLORS[L.topC].c);
- s+=SHOES[L.shoeS].d(COLORS[L.shoeC].c)+ACC.neck[L.neck].d()+faceSVG(sk,hc)+H.front(hc);
+ s+=SHOES[L.shoeS].d(COLORS[L.shoeC].c)+ACC.neck[L.neck].d()+faceSVG(sk,hc)+front;
  s+=ACC.ears[L.ears].d()+ACC.face[L.face].d()+ACC.head[L.head].d()+ACC.hand[L.hand].d();
  return `<svg viewBox="0 0 200 400" role="img" aria-label="Your model">${s}</svg>`;
 }
