@@ -162,6 +162,24 @@ button:focus-visible{outline:3px solid var(--sky);outline-offset:2px}
 .sw.locked::after{content:"";position:absolute;inset:0;border-radius:inherit;background:rgba(255,255,255,.55)}
 .sw.locked .lock{top:auto;bottom:-8px;right:-8px;z-index:1;padding:0 4px}
 .prize{display:flex;align-items:center;justify-content:center;gap:8px;background:var(--pinkSoft);border:2px dashed var(--pink);border-radius:14px;padding:6px 10px;font-weight:800}
+.pchip{align-self:flex-start;display:inline-flex;align-items:center;gap:8px;border:3px solid var(--ink);border-radius:999px;background:var(--card);padding:5px 14px 5px 6px;box-shadow:0 3px 0 var(--ink);font-family:var(--fd);font-size:1.1rem}
+.pchip .dot{width:26px;height:26px;border-radius:50%;border:2px solid var(--ink)}
+.pchip .sw2{font-family:var(--fb);font-weight:800;font-size:.8rem;color:var(--muted)}
+.ptitle{font-size:clamp(2.2rem,10vw,3rem);font-weight:800;color:var(--pink);-webkit-text-stroke:2px var(--ink);text-shadow:0 4px 0 var(--ink);text-align:center;padding-top:10px}
+.pgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;align-content:start;overflow-y:auto;flex:1;min-height:0;padding:6px 2px 10px}
+.pcard{border:3px solid var(--ink);border-radius:24px;background:var(--card);box-shadow:0 6px 0 var(--ink);overflow:hidden;display:flex;flex-direction:column;align-items:center;gap:4px;padding:0 8px 12px;text-align:center;min-width:0}
+button.pcard:active{transform:translateY(4px);box-shadow:0 2px 0 var(--ink)}
+.pcard .band{align-self:stretch;margin:0 -8px;height:150px;background:var(--pc);display:flex;justify-content:center;align-items:flex-end;overflow:hidden}
+.pcard .band svg{height:250px;width:auto;margin-bottom:-100px}
+.pcard b{font-family:var(--fd);font-size:1.4rem;line-height:1.1;max-width:100%;overflow-wrap:anywhere}
+.pcard small{font-weight:800;color:var(--muted)}
+.pcard.add{justify-content:center;min-height:220px;font-family:var(--fd);font-weight:800;font-size:1.3rem;background:#fff9fc;border-style:dashed}
+.pcard.add .plus{font-size:3rem;line-height:1;color:var(--pink)}
+.pcard input{width:100%;font:inherit;font-weight:800;font-size:1.1rem;border:2.5px solid var(--ink);border-radius:12px;padding:6px 8px;text-align:center;background:#fff;color:var(--ink)}
+.pcard .acts{display:flex;gap:6px;flex-wrap:wrap;justify-content:center}
+.pcard .acts button{border:2px solid var(--ink);border-radius:10px;background:var(--card);font-weight:800;font-size:.85rem;padding:4px 10px}
+.pcard .acts button.go{background:var(--mint)}
+.pcard .acts button.sure{background:#d7263d;color:#fff}
 .empty{text-align:center;font-weight:800;color:var(--muted);padding:30px 10px;line-height:1.4}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
@@ -176,11 +194,19 @@ button:focus-visible{outline:3px solid var(--sky);outline-offset:2px}
       <div><h1>Glam<br>Studio</h1><p>Style it. Paint it. Win the crown.</p></div>
       <div class="starpill" aria-label="Stars earned"><svg viewBox="0 0 24 24"><path d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.7 7-6.3-3.8-6.3 3.8 1.7-7L2 9.2l7.1-.6z" fill="#ffd23f" stroke="#3a1f4d" stroke-width="1.8" stroke-linejoin="round"/></svg><span id="starCount" class="starsNow">0</span></div>
     </header>
+    <button class="pchip" id="pchip"><span class="dot" id="pdot"></span><b id="pname"></b><span class="sw2">Switch player</span></button>
     <div class="tiles">
       <button class="tile t-run" id="goRun"><div class="art" id="runArt"></div><div class="txt"><h2>Runway Stars</h2><p>Pick makeup, hair and outfits, then walk for the judges.</p></div></button>
       <button class="tile t-case" id="goCase"><div class="art"><canvas id="caseArt" width="200" height="440"></canvas></div><div class="txt"><h2>Case Craft</h2><p>Paint, pour, glitter and sticker your own phone case.</p></div></button>
     </div>
     <button class="linkbtn" id="goGal">My cases</button>
+  </section>
+
+  <!-- PLAYERS -->
+  <section id="players" class="screen" hidden>
+    <h1 class="ptitle">Who's playing?</h1>
+    <div class="pgrid" id="pgrid"></div>
+    <button class="linkbtn" id="editPlayers">Edit players</button>
   </section>
 
   <!-- THEME -->
@@ -258,8 +284,19 @@ function tone(f=660,d=.08,type='sine',v=.07){try{AC=AC||new (window.AudioContext
 function fanfare(){[523,659,784,1047].forEach((f,i)=>setTimeout(()=>tone(f,.18,'triangle',.08),i*120))}
 function show(id){document.querySelectorAll('.screen').forEach(s=>s.hidden=s.id!==id);if(id!=='caseStudio')caseActive=false;if(id==='home')renderHome()}
 document.addEventListener('click',e=>{if(e.target.closest('[data-home]')){tone(440);show('home')}});
-let stars=store.get('glam_stars',0);
-function addStars(n){stars+=n;store.set('glam_stars',stars);updStars()}
+/* ---------- players ---------- */
+const PCOL=['#ff4fa3','#5fd3a8','#6cc4ff','#ffd23f','#b9a3ff','#ff8a65'];
+let PROFILES=store.get('glam_profiles',null),CURP=store.get('glam_current',null);
+if(!PROFILES){ // first run with players: copy any earlier progress to each girl
+ PROFILES=[{id:'p1',name:'June',c:0},{id:'p2',name:'Josephine',c:1}];
+ const legacy={stars:store.get('glam_stars',null),look:store.get('glam_look',null),unlocked:store.get('glam_unlocked',null),cases:store.get('glam_cases',null)};
+ PROFILES.forEach(p=>{for(const k in legacy)if(legacy[k]!=null)store.set(`glam_${p.id}_${k}`,legacy[k])});
+ store.set('glam_profiles',PROFILES);
+}
+if(!PROFILES.find(p=>p.id===CURP))CURP=PROFILES[0].id;
+const K=n=>`glam_${CURP}_${n}`;
+let stars=store.get(K('stars'),0);
+function addStars(n){stars+=n;store.set(K('stars'),stars);updStars()}
 function updStars(){document.querySelectorAll('.starsNow').forEach(e=>e.textContent=stars)}
 let toastT=null;function toast(msg){const t=$('#toast');t.textContent=msg;t.hidden=false;t.classList.remove('in');void t.offsetWidth;t.classList.add('in');clearTimeout(toastT);toastT=setTimeout(()=>t.hidden=true,2600)}
 
@@ -466,12 +503,13 @@ const judgeFace=j=>`<svg viewBox="0 0 80 80">${j.svg}</svg>`;
 
 /* ---------- character ---------- */
 const DEF={skin:1,hairS:'long',hairC:0,eye:0,iris:0,lip:1,blush:1,gems:0,topS:'tee',topC:1,botS:'jeans',botC:15,dressS:null,dressC:2,shoeS:'sneakers',shoeC:11,head:'none',neck:'none',ears:'none',face:'none',hand:'none'};
-let L=Object.assign({},DEF,store.get('glam_look',{}));
-for(const k in DEF){ // repair stale saved values
+let L=Object.assign({},DEF,store.get(K('look'),{}));
+function repairLook(){for(const k in DEF){ // repair stale saved values
  const bad=(k==='hairS'&&!HAIR[L[k]])||(k==='topS'&&!TOPS[L[k]])||(k==='botS'&&!BOTS[L[k]])||(k==='shoeS'&&!SHOES[L[k]])||(k==='dressS'&&L[k]&&!DRESS[L[k]])||(ACC[k]&&!ACC[k][L[k]]);
  if(bad)L[k]=DEF[k];
  if(k==='iris'&&!IRIS[L.iris])L.iris=0;
-}
+}}
+repairLook();
 function charSVG(){return svgWrap('0 0 200 400',()=>{
  const sk=SKINS[L.skin],hc=HAIRC[L.hairC].c,H=HAIR[L.hairS],cut=HAT_LINE[L.head],id=CUR+'hat';
  let back=H.back(hc),front=H.front(hc),defs='';
@@ -497,14 +535,17 @@ const GHOST={head:GF,ears:GF+'<path d="M72 64Q63 62 64 73Q65 84 74 84Z" fill="#f
 const sec=(t,h,cls='grid')=>`<div class="sec"><h3>${t}</h3><div class="${cls}">${h}</div></div>`;
 const PRICE={'hairS:waves':3,'hairS:puffs':2,'hairS:bun':2,'hairS:curls':3,'topS:hoodie':2,'topS:blouse':3,'topS:sweater':3,'topS:crop':4,'botS:leggings':2,'botS:tutu':3,'botS:sparkle':4,'dressS:flower':3,'dressS:coat':4,'dressS:party':5,'dressS:ball':8,'shoeS:boots':2,'shoeS:hightops':3,'shoeS:heels':4,'head:beanie':2,'head:sunhat':3,'head:phones':3,'head:flowers':4,'head:crown':8,'neck:scarf':2,'neck:lei':2,'neck:starchain':4,'neck:pearls':5,'ears:cherry':2,'ears:stars':3,'ears:drops':4,'face:hearts':3,'face:starshades':4,'hand:racket':2,'hand:cocoa':2,'hand:ball':2,'hand:bouquet':3,'hand:mic':4,'hand:wand':6,'gems:1':3,'col:13':3,'col:14':3};
 const pk=(k,v)=>/C$/.test(k)&&k!=='hairC'?'col:'+v:k+':'+v;
-let UNL=store.get('glam_unlocked',null);
-if(!UNL){ // first run of the shop: keep whatever she's already wearing, plus a starter gift
- UNL=[];for(const k in L)if(L[k]!=null){const key=pk(k,L[k]);if(PRICE[key])UNL.push(key)}
- stars+=5;store.set('glam_stars',stars);store.set('glam_unlocked',UNL);
-}
-UNL=new Set(UNL);
+let UNL;
+function loadUnl(){UNL=store.get(K('unlocked'),null);
+ if(!UNL){ // first run of the shop: keep whatever she's already wearing, plus a starter gift
+  UNL=[];for(const k in L)if(L[k]!=null){const key=pk(k,L[k]);if(PRICE[key])UNL.push(key)}
+  stars+=5;store.set(K('stars'),stars);store.set(K('unlocked'),UNL);
+ }
+ UNL=new Set(UNL)}
+loadUnl();
+function loadProfile(id){CURP=id;store.set('glam_current',id);stars=store.get(K('stars'),0);L=Object.assign({},DEF,store.get(K('look'),{}));repairLook();loadUnl()}
 const isOpen=(k,v)=>!PRICE[pk(k,v)]||UNL.has(pk(k,v));
-function unlock(key){UNL.add(key);store.set('glam_unlocked',[...UNL])}
+function unlock(key){UNL.add(key);store.set(K('unlocked'),[...UNL])}
 function itemName(key){const [k,v]=key.split(':');const M={hairS:HAIR,topS:TOPS,botS:BOTS,dressS:DRESS,shoeS:SHOES};
  if(M[k])return M[k][v].n;if(ACC[k])return ACC[k][v].n;if(k==='gems')return 'Sparkle face gems';if(k==='col')return COLORS[v].n+' color';return key}
 const lockTag=(k,v)=>isOpen(k,v)?'':`<b class="lock">🔒 ${PRICE[pk(k,v)]}★</b>`;
@@ -544,12 +585,12 @@ $('#opts').addEventListener('click',e=>{
  if(/^(skin|eye|iris|lip|blush|gems|hairC|topC|botC|dressC|shoeC)$/.test(k))v=+v;
  if(!isOpen(k,v)){const key=pk(k,v),price=PRICE[key];
   if(stars<price){toast(`You need ${price-stars} more star${price-stars>1?'s':''}. Win a show to earn more!`);tone(250,.15,'triangle');return}
-  stars-=price;store.set('glam_stars',stars);updStars();unlock(key);fanfare();toast(`Unlocked ${itemName(key)}!`);
+  stars-=price;store.set(K('stars'),stars);updStars();unlock(key);fanfare();toast(`Unlocked ${itemName(key)}!`);
  }
  L[k]=v;
  if(k==='topS'||k==='botS'||k==='topC'||k==='botC')L.dressS=null;
  if(k==='dressC'&&!L.dressS)L.dressS=isOpen('dressS','ball')?'ball':'sun';
- store.set('glam_look',L);tone(600+Math.random()*300,.06,'triangle');MOOD='grin';renderModel(true);renderOpts();
+ store.set(K('look'),L);tone(600+Math.random()*300,.06,'triangle');MOOD='grin';renderModel(true);renderOpts();
  clearTimeout(moodT);moodT=setTimeout(()=>{MOOD='smile';renderModel()},800);
 });
 function stageBg(el){el.style.background=theme.bg}
@@ -607,7 +648,7 @@ function finishShow(scores){
 }
 
 /* ---------- home ---------- */
-function renderHome(){MOOD='smile';updStars();$('#runArt').innerHTML=charSVG();drawShapePreview($('#caseArt'),'bunny','#ffb3d1')}
+function renderHome(){MOOD='smile';updStars();const me=PROFILES.find(p=>p.id===CURP);$('#pname').textContent=me.name;$('#pdot').style.background=PCOL[me.c%PCOL.length];$('#runArt').innerHTML=charSVG();drawShapePreview($('#caseArt'),'bunny','#ffb3d1')}
 $('#goGal').onclick=()=>{tone(600);openGallery()};
 
 /* ================= CASE CRAFT ================= */
@@ -769,8 +810,8 @@ $('#shapes').addEventListener('click',e=>{const b=e.target.closest('[data-shape]
 
 $('#caseDoneBtn').onclick=()=>{
  const sm=document.createElement('canvas');sm.width=300;sm.height=660;const x=sm.getContext('2d');x.fillStyle='#fff3f8';x.fillRect(0,0,300,660);x.drawImage(cv,0,0,300,660);
- const url=sm.toDataURL('image/jpeg',.82);let gal=store.get('glam_cases',[]);gal.unshift({img:url,t:Date.now()});gal=gal.slice(0,12);
- while(gal.length&&!store.set('glam_cases',gal))gal.pop();
+ const url=sm.toDataURL('image/jpeg',.82);let gal=store.get(K('cases'),[]);gal.unshift({img:url,t:Date.now()});gal=gal.slice(0,12);
+ while(gal.length&&!store.set(K('cases'),gal))gal.pop();
  caseActive=false;show('caseDone');$('#doneImg').src=url;$('#caseResult').hidden=true;
  const scores=JUDGES.map(()=>Math.round(rnd(8,10.4))).map(s=>Math.min(10,s));
  const lines=scores.map(()=>pick(['I need this case!','So creative!','Those colors pop!','A true designer!','Can I borrow it?']));
@@ -779,13 +820,43 @@ $('#caseDoneBtn').onclick=()=>{
   $('#galBtn').onclick=openGallery;$('#againBtn').onclick=startCase});
 };
 
-function openGallery(){show('gallery');const gal=store.get('glam_cases',[]);
+function openGallery(){show('gallery');const gal=store.get(K('cases'),[]);
  $('#gal').innerHTML=gal.length?gal.map((g,i)=>`<div class="gcard"><img src="${g.img}" alt="Saved case ${i+1}"><button data-del="${i}">Delete</button></div>`).join(''):`<div class="empty" style="grid-column:1/-1">No cases yet.<br>Make one in Case Craft!</div>`}
 $('#gal').addEventListener('click',e=>{const b=e.target.closest('[data-del]');if(!b)return;
  if(!b.classList.contains('sure')){b.classList.add('sure');b.textContent='Tap to delete';return}
- const gal=store.get('glam_cases',[]);gal.splice(+b.dataset.del,1);store.set('glam_cases',gal);openGallery()});
+ const gal=store.get(K('cases'),[]);gal.splice(+b.dataset.del,1);store.set(K('cases'),gal);openGallery()});
 
-renderHome();
+/* ---------- player picker ---------- */
+let pEdit=false,pAdding=false;
+const esc=t=>String(t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function lookFor(id){const keep=L;L=Object.assign({},DEF,store.get(`glam_${id}_look`,{}));repairLook();MOOD='smile';const svg=charSVG();L=keep;return svg}
+function openPlayers(){show('players');renderPlayers()}
+function renderPlayers(){
+ let h=PROFILES.map(p=>{const st=store.get(`glam_${p.id}_stars`,0)+(store.get(`glam_${p.id}_unlocked`,null)?0:5),col=PCOL[p.c%PCOL.length];
+  if(pEdit)return `<div class="pcard" style="--pc:${col}"><div class="band">${lookFor(p.id)}</div><input id="pn_${p.id}" maxlength="14" value="${esc(p.name)}" aria-label="Name"><div class="acts"><button class="go" data-save="${p.id}">Save</button>${PROFILES.length>1?`<button data-del="${p.id}">Remove</button>`:''}</div></div>`;
+  return `<button class="pcard" data-p="${p.id}" style="--pc:${col}"><div class="band">${lookFor(p.id)}</div><b>${esc(p.name)}</b><small>★ ${st} stars</small></button>`}).join('');
+ if(PROFILES.length<6)h+=pAdding?`<div class="pcard add"><span>New player</span><input id="pn_new" maxlength="14" placeholder="Name" aria-label="New player name"><div class="acts"><button class="go" data-add>Add</button><button data-cancel>Cancel</button></div></div>`:`<button class="pcard add" data-new><span class="plus">+</span>Add player</button>`;
+ $('#pgrid').innerHTML=h;$('#editPlayers').textContent=pEdit?'Done editing':'Edit players';
+ const ni=$('#pn_new');if(ni)ni.focus();
+}
+$('#editPlayers').onclick=()=>{pEdit=!pEdit;pAdding=false;tone(520);renderPlayers()};
+$('#pgrid').addEventListener('click',e=>{
+ const t=e.target;let b;
+ if(b=t.closest('[data-p]')){tone(760);loadProfile(b.dataset.p);fanfare();show('home');return}
+ if(t.closest('[data-new]')){pAdding=true;renderPlayers();return}
+ if(t.closest('[data-cancel]')){pAdding=false;renderPlayers();return}
+ if(t.closest('[data-add]')){const n=$('#pn_new').value.trim();if(!n){toast('Type a name first');return}
+  const id='p'+Date.now().toString(36);PROFILES.push({id,name:n,c:PROFILES.length});store.set('glam_profiles',PROFILES);pAdding=false;tone(880);renderPlayers();return}
+ if(b=t.closest('[data-save]')){const n=$('#pn_'+b.dataset.save).value.trim();if(!n){toast('Names can\u2019t be blank');return}
+  PROFILES.find(p=>p.id===b.dataset.save).name=n;store.set('glam_profiles',PROFILES);toast('Saved');tone(700);return}
+ if(b=t.closest('[data-del]')){if(!b.classList.contains('sure')){b.classList.add('sure');b.textContent='Tap to remove';return}
+  const id=b.dataset.del;PROFILES=PROFILES.filter(p=>p.id!==id);store.set('glam_profiles',PROFILES);
+  ['stars','look','unlocked','cases'].forEach(k=>{try{localStorage.removeItem(`glam_${id}_${k}`)}catch(_){}});
+  if(CURP===id)loadProfile(PROFILES[0].id);renderPlayers()}
+});
+$('#pgrid').addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.id==='pn_new')$('[data-add]').click()});
+$('#pchip').onclick=()=>{tone(600);pEdit=false;pAdding=false;openPlayers()};
+openPlayers();
 </script>
 
 </body>
