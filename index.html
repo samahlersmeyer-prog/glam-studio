@@ -151,18 +151,30 @@ button:focus-visible{outline:3px solid var(--sky);outline-offset:2px}
 .gcard img{width:100%;height:auto}
 .gcard button{border:2px solid var(--ink);border-radius:10px;background:var(--card);font-weight:800;font-size:.8rem;padding:4px 10px}
 .gcard button.sure{background:#d7263d;color:#fff}
+.starpill.sm{font-size:1rem;padding:2px 9px 2px 6px;flex:0 0 auto}.starpill.sm svg{width:18px;height:18px}
+.toast{position:fixed;left:50%;bottom:calc(22px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:50;background:var(--ink);color:#fff;font-weight:800;padding:10px 16px;border-radius:16px;box-shadow:0 4px 0 rgba(0,0,0,.25);max-width:calc(100% - 32px);text-align:center}
+.toast.in{animation:toastIn .3s cubic-bezier(.3,1.6,.5,1)}
+@keyframes toastIn{from{transform:translate(-50%,20px);opacity:0}}
+.opt,.sw{position:relative}
+.opt.locked svg{filter:grayscale(.85) opacity(.5)}
+.opt.locked span{color:var(--muted)}
+.lock{position:absolute;top:3px;right:3px;background:var(--sun);border:2px solid var(--ink);border-radius:999px;font-size:.7rem;font-weight:800;padding:0 5px;line-height:1.4;white-space:nowrap}
+.sw.locked::after{content:"";position:absolute;inset:0;border-radius:inherit;background:rgba(255,255,255,.55)}
+.sw.locked .lock{top:auto;bottom:-8px;right:-8px;z-index:1;padding:0 4px}
+.prize{display:flex;align-items:center;justify-content:center;gap:8px;background:var(--pinkSoft);border:2px dashed var(--pink);border-radius:14px;padding:6px 10px;font-weight:800}
 .empty{text-align:center;font-weight:800;color:var(--muted);padding:30px 10px;line-height:1.4}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
 
 </head>
 <body>
+<div id="toast" class="toast" role="status" hidden></div>
 <div id="app">
   <!-- HOME -->
   <section id="home" class="screen">
     <header class="brand">
       <div><h1>Glam<br>Studio</h1><p>Style it. Paint it. Win the crown.</p></div>
-      <div class="starpill" aria-label="Stars earned"><svg viewBox="0 0 24 24"><path d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.7 7-6.3-3.8-6.3 3.8 1.7-7L2 9.2l7.1-.6z" fill="#ffd23f" stroke="#3a1f4d" stroke-width="1.8" stroke-linejoin="round"/></svg><span id="starCount">0</span></div>
+      <div class="starpill" aria-label="Stars earned"><svg viewBox="0 0 24 24"><path d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.7 7-6.3-3.8-6.3 3.8 1.7-7L2 9.2l7.1-.6z" fill="#ffd23f" stroke="#3a1f4d" stroke-width="1.8" stroke-linejoin="round"/></svg><span id="starCount" class="starsNow">0</span></div>
     </header>
     <div class="tiles">
       <button class="tile t-run" id="goRun"><div class="art" id="runArt"></div><div class="txt"><h2>Runway Stars</h2><p>Pick makeup, hair and outfits, then walk for the judges.</p></div></button>
@@ -189,6 +201,7 @@ button:focus-visible{outline:3px solid var(--sky);outline-offset:2px}
     <div class="topbar">
       <button class="iconbtn" data-home aria-label="Home">‹</button>
       <div class="themechip grow" id="themeChip"></div>
+      <div class="starpill sm" aria-label="Stars"><svg viewBox="0 0 24 24"><path d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.7 7-6.3-3.8-6.3 3.8 1.7-7L2 9.2l7.1-.6z" fill="#ffd23f" stroke="#3a1f4d" stroke-width="1.8" stroke-linejoin="round"/></svg><span class="starsNow">0</span></div>
       <button class="btn pink" id="walkBtn">Walk!</button>
     </div>
     <div class="stage" id="stage"><div id="model"></div></div>
@@ -246,7 +259,9 @@ function fanfare(){[523,659,784,1047].forEach((f,i)=>setTimeout(()=>tone(f,.18,'
 function show(id){document.querySelectorAll('.screen').forEach(s=>s.hidden=s.id!==id);if(id!=='caseStudio')caseActive=false;if(id==='home')renderHome()}
 document.addEventListener('click',e=>{if(e.target.closest('[data-home]')){tone(440);show('home')}});
 let stars=store.get('glam_stars',0);
-function addStars(n){stars+=n;store.set('glam_stars',stars)}
+function addStars(n){stars+=n;store.set('glam_stars',stars);updStars()}
+function updStars(){document.querySelectorAll('.starsNow').forEach(e=>e.textContent=stars)}
+let toastT=null;function toast(msg){const t=$('#toast');t.textContent=msg;t.hidden=false;t.classList.remove('in');void t.offsetWidth;t.classList.add('in');clearTimeout(toastT);toastT=setTimeout(()=>t.hidden=true,2600)}
 
 /* ---------- color + svg helpers ---------- */
 function sh(hex,p){let n=parseInt(hex.slice(1),16),r=n>>16,g=n>>8&255,b=n&255;const f=p<0?0:255,a=Math.abs(p);r=Math.round(r+(f-r)*a);g=Math.round(g+(f-g)*a);b=Math.round(b+(f-b)*a);return'#'+((1<<24)+(r<<16)+(g<<8)+b).toString(16).slice(1)}
@@ -333,18 +348,26 @@ function bodySVG(sk){
 }
 const IRIS=[{n:'Brown',c:'#6b3f22'},{n:'Hazel',c:'#8a6a2f'},{n:'Green',c:'#3f8f5a',t:['garden']},{n:'Blue',c:'#3b7dd8',t:['summer','winter']},{n:'Gray',c:'#7d8a99',t:['cool']},{n:'Violet',c:'#8a5bd6',t:['royal','bold']}];
 const EYE_L='M74 73Q81 59.5 96 69Q91 80.5 81 78.8Q76 77.8 74 73Z',EYE_R='M126 73Q119 59.5 104 69Q109 80.5 119 78.8Q124 77.8 126 73Z';
+let MOOD='smile',moodT=null;
+function mouthSVG(Li,sk){
+ const dk=sh(Li,-.35),cr=sh(sk,-.3);
+ if(MOOD==='grin')return `<path d="M86.5 92Q100 96 113.5 92Q112 105.5 100 107Q88 105.5 86.5 92Z" fill="#6a1e2e" stroke="${Li}" stroke-width="2.4" stroke-linejoin="round"/><path d="M88.6 93.3Q100 96.8 111.4 93.3L110.4 97Q100 99.4 89.6 97Z" fill="#fff"/><path d="M93 104.2Q100 100.4 107 104.2Q100 106.4 93 104.2Z" fill="#ff7a90"/>`+BOTH(`<path d="M85.4 90.6Q83.6 91.6 83.8 93.6" stroke="${cr}" stroke-width="1" fill="none" stroke-linecap="round" opacity=".7"/>`);
+ if(MOOD==='sad')return `<path d="M90.5 98Q95 94.6 100 95.6Q105 94.6 109.5 98Q100 98.6 90.5 98Z" fill="${sh(Li,-.08)}"/><path d="M90.5 98Q100 102.6 109.5 98Q100 99.4 90.5 98Z" fill="${Li}"/><path d="M90.5 98Q100 99.2 109.5 98" stroke="${dk}" stroke-width="1" fill="none"/>`;
+ return `<path d="M88 92.4Q94 90.6 100 92.8Q106 90.6 112 92.4Q100 97.8 88 92.4Z" fill="${sh(Li,-.08)}"/><path d="M88 92.4Q100 104 112 92.4Q100 98.2 88 92.4Z" fill="${Li}"/><path d="M88 92.4Q100 98.2 112 92.4" stroke="${dk}" stroke-width="1" fill="none"/><ellipse cx="102" cy="99.2" rx="3.4" ry="1.1" fill="#fff" opacity=".45"/>`+BOTH(`<path d="M87 91.4Q85.8 92.8 86.8 94.4" stroke="${cr}" stroke-width=".9" fill="none" stroke-linecap="round" opacity=".6"/>`);
+}
 function faceSVG(sk,hc){
  const E=EYES[L.eye].c,ir=IRIS[L.iris||0].c,Li=LIPS[L.lip].c||mix(sk,'#d4636f',.5),B=BLUSH[L.blush].c,br=sh(hc,-.3),id=CUR+'eye',ln=sh(sk,-.32);let s='';
  if(B)s+=BOTH(`<ellipse cx="81" cy="88" rx="9" ry="5.5" fill="${B}" opacity=".35" filter="url(#${CUR}blur)"/>`);
  if(E)s+=BOTH(`<path d="M71.5 71Q79.5 52 98.5 64Q98.5 69 96.5 69Q85.5 58 74 73Z" fill="${E}" opacity=".8" filter="url(#${CUR}soft)"/><path d="M77.5 63Q85.5 59 93.5 63" stroke="#fff" stroke-opacity=".5" stroke-width="1.2" fill="none"/>`);
- s+=BOTH(`<path d="M72 57Q82.5 47.5 95.5 52.5Q95.5 55.5 94 55.5Q82.5 52 73.5 59Z" fill="${br}"/>`);
+ s+=BOTH(`<g transform="${MOOD==='sad'?'rotate(-11 84 54)':MOOD==='grin'?'translate(0 -1.6)':''}"><path d="M72 57Q82.5 47.5 95.5 52.5Q95.5 55.5 94 55.5Q82.5 52 73.5 59Z" fill="${br}"/></g>`);
  s+=BOTH(`<path d="M77.5 63.5Q85.5 57.5 94.5 62" stroke="${ln}" stroke-width=".9" opacity=".55" fill="none"/>`);
  s+=`<clipPath id="${id}"><path d="${EYE_L}"/><path d="${EYE_R}"/></clipPath><path d="${EYE_L}" fill="#fff"/><path d="${EYE_R}" fill="#fff"/><g clip-path="url(#${id})">`
   +[86,114].map(x=>`<circle cx="${x}" cy="71.6" r="7.2" fill="${ir}"/><circle cx="${x}" cy="72.6" r="5.4" fill="${sh(ir,.3)}" opacity=".55"/><circle cx="${x}" cy="71.6" r="7" fill="none" stroke="${sh(ir,-.5)}" stroke-width="1.2"/><circle cx="${x}" cy="72" r="3.3" fill="#120a14"/><circle cx="${x+2.6}" cy="68.6" r="2.3" fill="#fff"/><circle cx="${x-2.8}" cy="75" r="1.1" fill="#fff" opacity=".85"/>`).join('')
-  +`<path d="M74 56L126 56L126 68Q112 62 100 67Q88 62 74 68Z" fill="#000" opacity=".12"/></g>`;
+  +`<path d="M74 56L126 56L126 68Q112 62 100 67Q88 62 74 68Z" fill="#000" opacity=".12"/>`+(MOOD==='grin'?BOTH(`<path d="M72 84Q86 72.5 100 84Z" fill="${sk}"/><path d="M76 80.5Q86 74 97 80.5" stroke="${sh(sk,-.3)}" stroke-width=".9" fill="none"/>`):'')+`</g>`;
  s+=BOTH(`<path d="M73 73.5Q81 58.5 96.5 69" stroke="#1d1220" stroke-width="2" fill="none" stroke-linecap="round"/><path d="M74 72.3Q70.5 71.5 69 69.5M75.7 68.6Q72.5 67 71.5 64.6M78.1 65.6Q76.1 63.4 75.9 60.8" stroke="#1d1220" stroke-width="1.1" fill="none" stroke-linecap="round"/><path d="M80.5 79.2Q89.5 81.4 95.5 71.5" stroke="${ln}" stroke-width=".8" fill="none" opacity=".7"/>`);
  s+=`<path d="M100.5 75Q98.5 83 97.5 87Q100 89.5 103 87.4" stroke="${ln}" stroke-width="1.3" fill="none" stroke-linecap="round" opacity=".85"/><path d="M101.5 77L101 84" stroke="#fff" stroke-opacity=".35" stroke-width="1.6" stroke-linecap="round"/>`;
- s+=`<path d="M89 95Q94 90.5 100 92.5Q106 90.5 111 95Q100 97 89 95Z" fill="${sh(Li,-.08)}"/><path d="M89 95Q100 104.5 111 95Q100 97.5 89 95Z" fill="${Li}"/><path d="M89 95Q100 97.6 111 95" stroke="${sh(Li,-.35)}" stroke-width="1" fill="none"/><ellipse cx="102" cy="99" rx="3.4" ry="1.2" fill="#fff" opacity=".45"/>`;
+ s+=mouthSVG(Li,sk);
+ if(0)s+=`<path d="M89 95Q94 90.5 100 92.5Q106 90.5 111 95Q100 97 89 95Z" fill="${sh(Li,-.08)}"/><path d="M89 95Q100 104.5 111 95Q100 97.5 89 95Z" fill="${Li}"/><path d="M89 95Q100 97.6 111 95" stroke="${sh(Li,-.35)}" stroke-width="1" fill="none"/><ellipse cx="102" cy="99" rx="3.4" ry="1.2" fill="#fff" opacity=".45"/>`;
  if(L.gems)s+=BOTH(STAR(73,80,3.6,'#fff7a8','stroke="#e9b949" stroke-width=".6"')+`<circle cx="76" cy="86" r="1.4" fill="#b9a3ff"/><circle cx="71" cy="85" r="1.1" fill="#6cc4ff"/>`);
  return s;
 }
@@ -472,9 +495,22 @@ const VB={top:'40 104 120 132',bottom:'46 190 108 192',dress:'16 112 168 278',sh
 const GF=`<path d="${FACE}" fill="#f6e4ee"/>`;
 const GHOST={head:GF,ears:GF+'<path d="M72 64Q63 62 64 73Q65 84 74 84Z" fill="#f6e4ee"/><path d="M128 64Q137 62 136 73Q135 84 126 84Z" fill="#f6e4ee"/>',face:GF,neck:`<path d="${NECK}" fill="#f6e4ee"/><path d="M68 127Q100 118 132 127L130 170L70 170Z" fill="#f6e4ee"/>`,hand:'<path d="M147 226Q150 238 146 246Q142 250 138 246Q135 240 136 226Z" fill="#f6e4ee"/>'};
 const sec=(t,h,cls='grid')=>`<div class="sec"><h3>${t}</h3><div class="${cls}">${h}</div></div>`;
-const opt=(k,v,name,inner,on)=>`<button class="opt${on?' on':''}" data-k="${k}" data-v="${v}" aria-pressed="${on}">${inner}<span>${name}</span></button>`;
+const PRICE={'hairS:waves':3,'hairS:puffs':2,'hairS:bun':2,'hairS:curls':3,'topS:hoodie':2,'topS:blouse':3,'topS:sweater':3,'topS:crop':4,'botS:leggings':2,'botS:tutu':3,'botS:sparkle':4,'dressS:flower':3,'dressS:coat':4,'dressS:party':5,'dressS:ball':8,'shoeS:boots':2,'shoeS:hightops':3,'shoeS:heels':4,'head:beanie':2,'head:sunhat':3,'head:phones':3,'head:flowers':4,'head:crown':8,'neck:scarf':2,'neck:lei':2,'neck:starchain':4,'neck:pearls':5,'ears:cherry':2,'ears:stars':3,'ears:drops':4,'face:hearts':3,'face:starshades':4,'hand:racket':2,'hand:cocoa':2,'hand:ball':2,'hand:bouquet':3,'hand:mic':4,'hand:wand':6,'gems:1':3,'col:13':3,'col:14':3};
+const pk=(k,v)=>/C$/.test(k)&&k!=='hairC'?'col:'+v:k+':'+v;
+let UNL=store.get('glam_unlocked',null);
+if(!UNL){ // first run of the shop: keep whatever she's already wearing, plus a starter gift
+ UNL=[];for(const k in L)if(L[k]!=null){const key=pk(k,L[k]);if(PRICE[key])UNL.push(key)}
+ stars+=5;store.set('glam_stars',stars);store.set('glam_unlocked',UNL);
+}
+UNL=new Set(UNL);
+const isOpen=(k,v)=>!PRICE[pk(k,v)]||UNL.has(pk(k,v));
+function unlock(key){UNL.add(key);store.set('glam_unlocked',[...UNL])}
+function itemName(key){const [k,v]=key.split(':');const M={hairS:HAIR,topS:TOPS,botS:BOTS,dressS:DRESS,shoeS:SHOES};
+ if(M[k])return M[k][v].n;if(ACC[k])return ACC[k][v].n;if(k==='gems')return 'Sparkle face gems';if(k==='col')return COLORS[v].n+' color';return key}
+const lockTag=(k,v)=>isOpen(k,v)?'':`<b class="lock">🔒 ${PRICE[pk(k,v)]}★</b>`;
+const opt=(k,v,name,inner,on)=>`<button class="opt${on?' on':''}${isOpen(k,v)?'':' locked'}" data-k="${k}" data-v="${v}" aria-pressed="${on}" aria-label="${name}">${lockTag(k,v)}${inner}<span>${name}</span></button>`;
 const thumb=(vb,fn)=>svgWrap(vb,fn);
-const sw=(k,i,c,on,name,extra='')=>`<button class="sw${on?' on':''}${c?'':' nil'}${extra}" style="${c?'--c:'+c:''}" data-k="${k}" data-v="${i}" aria-label="${name}" title="${name}"></button>`;
+const sw=(k,i,c,on,name,extra='')=>`<button class="sw${on?' on':''}${c?'':' nil'}${extra}${isOpen(k,i)?'':' locked'}" style="${c?'--c:'+c:''}" data-k="${k}" data-v="${i}" aria-label="${name}" title="${name}">${lockTag(k,i)}</button>`;
 function renderTabs(){$('#tabs').innerHTML=TABS.map(([k,n])=>`<button class="tab${k===tab?' on':''}" role="tab" aria-selected="${k===tab}" data-tab="${k}">${n}</button>`).join('')}
 function renderOpts(){
  let h='';const sk=SKINS[L.skin];
@@ -484,7 +520,7 @@ function renderOpts(){
   h+=sec('Eyeshadow',EYES.map((e,i)=>sw('eye',i,e.c,L.eye===i,e.n)).join(''),'swatches');
   h+=sec('Lipstick',LIPS.map((e,i)=>sw('lip',i,e.c||sh(sk,-.22),L.lip===i,e.n)).join(''),'swatches');
   h+=sec('Blush',BLUSH.map((e,i)=>sw('blush',i,e.c,L.blush===i,e.n)).join(''),'swatches');
-  h+=sec('Face gems',sw('gems',0,null,!L.gems,'No gems')+`<button class="sw wide${L.gems?' on':''}" style="--c:#fff7a8" data-k="gems" data-v="1">Sparkle gems</button>`,'swatches');
+  h+=sec('Face gems',sw('gems',0,null,!L.gems,'No gems')+`<button class="sw wide${L.gems?' on':''}${isOpen('gems',1)?'':' locked'}" style="--c:#fff7a8" data-k="gems" data-v="1" aria-label="Sparkle gems">Sparkle gems${lockTag('gems',1)}</button>`,'swatches');
  }else if(tab==='hair'){
   h+=sec('Hairstyle',Object.entries(HAIR).map(([k,v])=>opt('hairS',k,v.n,thumb(VB.hair,()=>v.back(HAIRC[L.hairC].c)+`<path d="${NECK}" fill="${sk}"/><path d="${FACE}" fill="${sk}"/>`+v.front(HAIRC[L.hairC].c)),L.hairS===k)).join(''));
   h+=sec('Hair color',HAIRC.map((c,i)=>sw('hairC',i,c.c,L.hairC===i,c.n)).join(''),'swatches');
@@ -506,10 +542,15 @@ $('#tabs').addEventListener('click',e=>{const b=e.target.closest('[data-tab]');i
 $('#opts').addEventListener('click',e=>{
  const b=e.target.closest('[data-k]');if(!b)return;const k=b.dataset.k;let v=b.dataset.v;
  if(/^(skin|eye|iris|lip|blush|gems|hairC|topC|botC|dressC|shoeC)$/.test(k))v=+v;
+ if(!isOpen(k,v)){const key=pk(k,v),price=PRICE[key];
+  if(stars<price){toast(`You need ${price-stars} more star${price-stars>1?'s':''}. Win a show to earn more!`);tone(250,.15,'triangle');return}
+  stars-=price;store.set('glam_stars',stars);updStars();unlock(key);fanfare();toast(`Unlocked ${itemName(key)}!`);
+ }
  L[k]=v;
  if(k==='topS'||k==='botS'||k==='topC'||k==='botC')L.dressS=null;
- if(k==='dressC'&&!L.dressS)L.dressS='ball';
- store.set('glam_look',L);tone(600+Math.random()*300,.06,'triangle');renderModel(true);renderOpts();
+ if(k==='dressC'&&!L.dressS)L.dressS=isOpen('dressS','ball')?'ball':'sun';
+ store.set('glam_look',L);tone(600+Math.random()*300,.06,'triangle');MOOD='grin';renderModel(true);renderOpts();
+ clearTimeout(moodT);moodT=setTimeout(()=>{MOOD='smile';renderModel()},800);
 });
 function stageBg(el){el.style.background=theme.bg}
 
@@ -520,7 +561,7 @@ function startRunway(){show('theme');const card=$('#themeCard');card.classList.a
 }
 $('#goRun').onclick=()=>{tone(700);startRunway()};
 $('#tGo').onclick=()=>toStudio();
-function toStudio(){show('studio');$('#themeChip').innerHTML=`${theme.n}<small>Judges love: ${theme.hint.join(' · ')}</small>`;stageBg($('#stage'));renderTabs();renderOpts();renderModel()}
+function toStudio(){MOOD='smile';show('studio');updStars();$('#themeChip').innerHTML=`${theme.n}<small>Judges love: ${theme.hint.join(' · ')}</small>`;stageBg($('#stage'));renderTabs();renderOpts();renderModel()}
 
 function wornTags(){
  const T=[],add=a=>a&&T.push(...a);
@@ -539,7 +580,7 @@ function judgeRow(el,scores,lines){
  return new Promise(res=>{JUDGES.forEach((j,i)=>setTimeout(()=>{$('#'+el.id+'p'+i).classList.add('flip');$('#'+el.id+'b'+i).classList.add('in');tone(400+scores[i]*60,.2,'triangle',.08)},900*i+300));setTimeout(res,900*JUDGES.length+500)});
 }
 function walk(){
- show('show');const rw=$('#runway');stageBg(rw);const w=$('#walker');w.innerHTML=charSVG();w.className='';void w.offsetWidth;w.className='walking';
+ MOOD='smile';show('show');const rw=$('#runway');stageBg(rw);const w=$('#walker');w.innerHTML=charSVG();w.className='';void w.offsetWidth;w.className='walking';
  const f=$('#flash');f.className='flash';void f.offsetWidth;f.className='flash flashing';
  $('#result').hidden=true;$('#judges').innerHTML='';
  const T=wornTags(),m=T.filter(t=>theme.tags.includes(t)).length;
@@ -552,17 +593,21 @@ $('#walkBtn').onclick=walk;
 function finishShow(scores){
  const you=scores.reduce((a,b)=>a+b,0),rival=Math.round(rnd(15,24)),win=you>=rival;
  const earned=win?(you>=27?5:3):1;addStars(earned);
+ MOOD=win?'grin':'sad';const w=$('#walker');w.innerHTML=charSVG();w.className='';void w.offsetWidth;w.className='pose';
+ let prize='';
+ if(win){const locked=Object.keys(PRICE).filter(k=>!UNL.has(k)).sort((a,b)=>PRICE[a]-PRICE[b]).slice(0,6);
+  if(locked.length){const key=pick(locked);unlock(key);prize=`<div class="prize">Prize unlocked: ${itemName(key)}!</div>`}}
  const r=$('#result');r.hidden=false;
  r.innerHTML=`<h2>${win?(you>=27?'Supermodel! You win the crown':'You win!'):'So close!'}</h2>
  <div class="scoreline"><div class="you"><b>${you}</b>You</div><div><b>${rival}</b>Penny Prism</div></div>
- <p style="margin:0;font-weight:800">+${earned} star${earned>1?'s':''} &middot; ${win?'The crowd goes wild!':'Restyle and try again!'}</p>
+ <p style="margin:0;font-weight:800">+${earned} star${earned>1?'s':''} &middot; ${win?'The crowd goes wild!':'Restyle and try again!'}</p>${prize}
  <div class="row"><button class="btn white" id="reBtn">Restyle</button><button class="btn pink" id="nextBtn">New show</button></div>`;
  if(win)fanfare();else tone(330,.3,'triangle');
  $('#reBtn').onclick=()=>toStudio();$('#nextBtn').onclick=()=>startRunway();
 }
 
 /* ---------- home ---------- */
-function renderHome(){$('#starCount').textContent=stars;$('#runArt').innerHTML=charSVG();drawShapePreview($('#caseArt'),'bunny','#ffb3d1')}
+function renderHome(){MOOD='smile';updStars();$('#runArt').innerHTML=charSVG();drawShapePreview($('#caseArt'),'bunny','#ffb3d1')}
 $('#goGal').onclick=()=>{tone(600);openGallery()};
 
 /* ================= CASE CRAFT ================= */
