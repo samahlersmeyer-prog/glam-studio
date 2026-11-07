@@ -1,0 +1,5 @@
+/* Baloo 2 + Nunito, saved here so the app works with no internet. woff2 for new devices, woff for the old iPad. */
+@font-face{font-family:'Baloo 2';font-style:normal;font-weight:600;font-display:swap;src:url(baloo-2-latin-600-normal.woff2) format('woff2'),url(baloo-2-latin-600-normal.woff) format('woff')}
+@font-face{font-family:'Baloo 2';font-style:normal;font-weight:800;font-display:swap;src:url(baloo-2-latin-800-normal.woff2) format('woff2'),url(baloo-2-latin-800-normal.woff) format('woff')}
+@font-face{font-family:'Nunito';font-style:normal;font-weight:600;font-display:swap;src:url(nunito-latin-600-normal.woff2) format('woff2'),url(nunito-latin-600-normal.woff) format('woff')}
+@font-face{font-family:'Nunito';font-style:normal;font-weight:800;font-display:swap;src:url(nunito-latin-800-normal.woff2) format('woff2'),url(nunito-latin-800-normal.woff) format('woff')}

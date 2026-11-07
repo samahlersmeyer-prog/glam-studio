@@ -8,10 +8,16 @@
 <meta name="theme-color" content="#fff3f8">
 <style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);box-sizing:border-box}*,*::before,*::after{box-sizing:border-box}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
 <title>Glam Studio</title>
+<script>
+// Old iPad? Older Safari (no pointer events or newer JS) goes to the copy built for it in legacy/
+(function () { var old = !window.PointerEvent; try { new Function("a", "return a?.b ?? 1"); } catch (e) { old = true; }
+  if (old && !/[?&]modern\b/.test(location.search)) location.replace("legacy/" + location.hash); })();
+</script>
 <meta name="claude:viewport-fit-sides" content="cover">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&family=Nunito:wght@600;800&display=swap">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" href="icon-192.png">
+<link rel="stylesheet" href="fonts/fonts.css">
 <style>
 /* Layout: one-screen toy app, chunky sticker buttons with plum outlines; stage on top, controls below */
 :root{
@@ -1357,7 +1363,7 @@ let DR=null,DS=null;
 const ROOM=3,WIN={x:.6,w:1.6,y0:1.1,y1:2.4},DOOR={z:1.6,w:1.0,h:2.1};
 function dload(){DS=Object.assign({best:{},inv:null,home:null},store.get(K('decor'),{}));if(!DS.inv){DS.inv=Object.assign({},STARTER);dsave()}}
 function dsave(){store.set(K('decor'),DS)}
-function loadThree(){return new Promise((res,rej)=>{if(window.THREE)return res();const s=document.createElement('script');s.src='https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js';s.onload=()=>res();s.onerror=()=>rej(new Error('three'));document.head.appendChild(s)})}
+function loadThree(){return new Promise((res,rej)=>{if(window.THREE)return res();const s=document.createElement('script');s.src='vendor/three.min.js';s.onload=()=>res();s.onerror=()=>rej(new Error('three'));document.head.appendChild(s)})}
 function buildItem(kind,vi){const vars=VARS[kind]||[{}],v=vars[vi]||vars[0],g=B[kind](v);g.userData.kind=kind;g.userData.vi=vars[vi]?vi:0;g.traverse(o=>{if(o.isMesh&&o.userData.surf==null)o.userData.pick=g});return g}
 function emojiTex(e){DR.etex=DR.etex||{};if(DR.etex[e])return DR.etex[e];const c=texCanvas((x,w,h)=>{x.font=`${w*.78}px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif`;x.textAlign='center';x.textBaseline='middle';x.fillText(e,w/2,h*.56)},128);const t=new THREE.CanvasTexture(c);t.encoding=THREE.sRGBEncoding;return DR.etex[e]=t}
 function sprite(e,s=.5){const m=new THREE.Sprite(new THREE.SpriteMaterial({map:emojiTex(e),depthTest:false,transparent:true}));m.scale.set(s,s,s);m.renderOrder=10;return m}
@@ -1654,5 +1660,9 @@ $('#pchip').onclick=()=>{tone(600);pEdit=false;pAdding=false;openPlayers()};
 openPlayers();
 </script>
 
+<script>
+// Keep the installed app up to date and playable with no internet (service worker in sw.js)
+if ("serviceWorker" in navigator && location.protocol === "https:") addEventListener("load", function () { navigator.serviceWorker.register("sw.js").catch(function () {}); });
+</script>
 </body>
 </html>

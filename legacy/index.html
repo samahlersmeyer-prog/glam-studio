@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="en" class="legacy" manifest="/glam-studio/legacy/manifest.appcache">
+<head>
+<!-- Built by tools/legacy/build.mjs from index.html. Don't edit; run python3 tools/stamp.py. -->
+<meta charset="utf-8">
+<base href="../">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Glam Studio">
+<meta name="theme-color" content="#fff3f8">
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);box-sizing:border-box}*,*::before,*::after{box-sizing:border-box}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+<title>Glam Studio</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" href="icon-192.png">
+<link rel="stylesheet" href="fonts/fonts.css">
+<link rel="stylesheet" href="legacy/styles.css?v=65e948c7fc">
+
+</head>
+<body>
+<div id="toast" class="toast" role="status" hidden></div>
+<div id="app">
+  <!-- HOME -->
+  <section id="home" class="screen">
+    <header class="brand">
+      <div><h1>Glam<br>Studio</h1><p>Style it. Paint it. Win the crown.</p></div>
+      <div class="starpill" aria-label="Stars earned"><svg viewBox="0 0 24 24"><path d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.7 7-6.3-3.8-6.3 3.8 1.7-7L2 9.2l7.1-.6z" fill="#ffd23f" stroke="#3a1f4d" stroke-width="1.8" stroke-linejoin="round"/></svg><span id="starCount" class="starsNow">0</span></div>
+    </header>
+    <button class="pchip" id="pchip"><span class="dot" id="pdot"></span><b id="pname"></b><span class="sw2">Switch player</span></button>
+    <div class="tiles">
+      <button class="tile t-run" id="goRun"><div class="art" id="runArt"></div><div class="txt"><h2>Runway Stars</h2><p>Pick makeup, hair and outfits, then walk for the judges.</p></div></button>
+      <button class="tile t-case" id="goCase"><div class="art"><canvas id="caseArt" width="200" height="440"></canvas></div><div class="txt"><h2>Case Craft</h2><p>Paint, pour, glitter and sticker your own phone case.</p></div></button>
+      <button class="tile t-decor" id="goDecor"><div class="art"><svg viewBox="0 0 100 100" aria-hidden="true"><path d="M8 32 50 12 50 52 8 72Z" fill="#ffd6e4" stroke="#3a1f4d" stroke-width="2.4" stroke-linejoin="round"/><path d="M50 12 92 32 92 72 50 52Z" fill="#e6ddff" stroke="#3a1f4d" stroke-width="2.4" stroke-linejoin="round"/><path d="M8 72 50 52 92 72 50 92Z" fill="#d9a66c" stroke="#3a1f4d" stroke-width="2.4" stroke-linejoin="round"/><path d="M62 30 80 39 80 54 62 45Z" fill="#9fd8ff" stroke="#fff" stroke-width="2"/><path d="M22 40 34 34 34 46 22 52Z" fill="#fff3b0" stroke="#e9b949" stroke-width="1.5"/><path d="M36 66 54 57 70 65 52 74Z" fill="#ff9ac8" stroke="#3a1f4d" stroke-width="1.6"/><path d="M36 66 52 74 52 79 36 71Z" fill="#e06aa5" stroke="#3a1f4d" stroke-width="1.6"/><path d="M52 74 70 65 70 70 52 79Z" fill="#c9528c" stroke="#3a1f4d" stroke-width="1.6"/><path d="M40 61 50 56 54 58 44 63Z" fill="#fff"/></svg></div><div class="txt"><h2>Dream Rooms</h2><p>Fix up rooms for clients, then design your own.</p></div></button>
+    </div>
+    <button class="linkbtn" id="goGal">My cases</button>
+  </section>
+
+  <!-- PLAYERS -->
+  <section id="players" class="screen" hidden>
+    <h1 class="ptitle">Who's playing?</h1>
+    <div class="pgrid" id="pgrid"></div>
+    <button class="linkbtn" id="editPlayers">Edit players</button>
+  </section>
+
+  <!-- THEME -->
+  <section id="theme" class="screen center" hidden>
+    <div class="topbar"><button class="iconbtn" data-home aria-label="Home">‹</button></div>
+    <div class="themeCard" id="themeCard">
+      <div class="kicker">Today's show</div>
+      <div class="ticon" id="tIcon"></div>
+      <h2 id="tName"></h2>
+      <div class="kicker" id="tLoveLbl">The judges love</div>
+      <div class="chips" id="tHint"></div>
+    </div>
+    <button class="btn pink big" id="tGo">Start styling</button>
+  </section>
+
+  <!-- STUDIO -->
+  <section id="studio" class="screen" hidden>
+    <div class="topbar">
+      <button class="iconbtn" data-home aria-label="Home">‹</button>
+      <div class="themechip grow" id="themeChip"></div>
+      <div class="starpill sm" aria-label="Stars"><svg viewBox="0 0 24 24"><path d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.7 7-6.3-3.8-6.3 3.8 1.7-7L2 9.2l7.1-.6z" fill="#ffd23f" stroke="#3a1f4d" stroke-width="1.8" stroke-linejoin="round"/></svg><span class="starsNow">0</span></div>
+      <button class="btn pink" id="walkBtn">Walk!</button>
+    </div>
+    <div class="stage" id="stage"><div id="model"></div></div>
+    <div class="tabs" id="tabs" role="tablist"></div>
+    <div class="opts" id="opts"></div>
+  </section>
+
+  <!-- SHOW -->
+  <section id="show" class="screen" hidden>
+    <div class="runway" id="runway"><div class="floor"></div><div id="walker"></div><div class="flash" id="flash"></div></div>
+    <div class="judges" id="judges"></div>
+    <div class="result" id="result" hidden></div>
+  </section>
+
+  <!-- DREAM ROOMS -->
+  <section id="decorMap" class="screen" hidden>
+    <div class="topbar"><button class="iconbtn" data-home aria-label="Home">‹</button><h2 class="grow" style="font-size:1.7rem">Dream Rooms</h2><div class="starpill sm" aria-label="Stars"><svg viewBox="0 0 24 24"><path d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.7 7-6.3-3.8-6.3 3.8 1.7-7L2 9.2l7.1-.6z" fill="#ffd23f" stroke="#3a1f4d" stroke-width="1.8" stroke-linejoin="round"/></svg><span class="starsNow">0</span></div></div>
+    <div class="jobs" id="jobs"></div>
+  </section>
+  <section id="decor" class="screen" hidden>
+    <div class="topbar"><button class="iconbtn" id="dBack" aria-label="Back to map">‹</button><div class="grow dstep" id="dStep"></div><div class="starpill sm" aria-label="Stars"><svg viewBox="0 0 24 24"><path d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.7 7-6.3-3.8-6.3 3.8 1.7-7L2 9.2l7.1-.6z" fill="#ffd23f" stroke="#3a1f4d" stroke-width="1.8" stroke-linejoin="round"/></svg><span class="starsNow">0</span></div></div>
+    <div class="d3wrap" id="d3wrap"><div class="dload" id="dLoad">Building the room…</div><div class="dctl" id="dCtl"></div></div>
+    <div class="dpanel" id="dPanel"></div>
+  </section>
+
+  <!-- CASE SHAPE -->
+  <section id="caseShape" class="screen" hidden>
+    <div class="topbar"><button class="iconbtn" data-home aria-label="Home">‹</button><h2 class="grow" style="font-size:1.7rem">Pick a case</h2></div>
+    <div class="modes" id="modes"></div>
+    <p class="hint" id="modeHint" style="margin:0;font-weight:800;color:var(--muted);text-align:center"></p>
+    <div class="shapes" id="shapes"></div>
+  </section>
+
+  <!-- CASE STUDIO -->
+  <section id="caseStudio" class="screen" hidden>
+    <div class="topbar">
+      <button class="iconbtn" data-home aria-label="Home">‹</button>
+      <button class="iconbtn" id="undoBtn" aria-label="Undo">↶</button>
+      <div class="grow"></div>
+      <button class="btn pink" id="caseDoneBtn">Done!</button>
+    </div>
+    <div class="caseWrap"><canvas id="caseCv" aria-label="Phone case canvas"></canvas></div>
+    <div class="tools" id="tools"></div>
+    <div class="panel" id="panel"></div>
+  </section>
+
+  <!-- CASE DONE -->
+  <section id="caseDone" class="screen" hidden>
+    <div class="doneImg"><img id="doneImg" alt="Your finished phone case"></div>
+    <div class="judges" id="caseJudges"></div>
+    <div class="result" id="caseResult" hidden></div>
+  </section>
+
+  <!-- GALLERY -->
+  <section id="gallery" class="screen" hidden>
+    <div class="topbar"><button class="iconbtn" data-home aria-label="Home">‹</button><h2 class="grow" style="font-size:1.7rem">My cases</h2></div>
+    <div class="gal" id="gal"></div>
+  </section>
+</div>
+
+<script src="legacy/poly.js?v=85a69afe0b"></script>
+<script src="legacy/app.js?v=d6125a3aa0"></script>
+
+<script>
+(function () { var ac = window.applicationCache, t0 = Date.now(); if (!ac) return;
+  function swap() { try { ac.swapCache(); } catch (e) {} location.reload(); }
+  ac.addEventListener("updateready", function () {
+    if (Date.now() - t0 < 15000) return swap();
+    document.addEventListener("visibilitychange", function () { if (!document.hidden) swap(); });
+  });
+})();
+</script>
+</body>
+</html>

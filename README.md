@@ -6,4 +6,6 @@ Three games for Junie and Josie, each with her own player profile:
 - **Case Craft**: paint, pour, tie-dye, stencil, bling and decorate phone and earbud cases, or rescue a messy old case.
 - **Dream Rooms**: 3D room makeovers for clients (clear out, pick styles, unbox and place furniture, unpack), star ratings, rewards for decorating your own home.
 
-Play: https://samahlersmeyer-prog.github.io/glam-studio/
+Play: https://samahlersmeyer-prog.github.io/glam-studio/ (works offline after the first visit)
+
+Old iPad (iOS 9): https://samahlersmeyer-prog.github.io/glam-studio/legacy/ (also works offline)

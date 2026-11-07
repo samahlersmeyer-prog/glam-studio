@@ -1,0 +1,36 @@
+/* Hand fixes for the old-iPad copy (iOS 9). build.mjs appends this after the converted styles. */
+html.legacy body { -webkit-text-size-adjust: 100%; }
+html.legacy #app { padding-left: 16px; padding-right: 16px; }
+html.legacy .screen { -webkit-flex-direction: column; flex-direction: column; }
+/* buttons can't be flex boxes on old Safari: the home tiles lay out with inline-blocks */
+html.legacy .tile { text-align: left; white-space: nowrap; }
+html.legacy .tile > .art { display: inline-block; vertical-align: middle; width: 96px; }
+html.legacy .tile > .txt { display: inline-block; vertical-align: middle; white-space: normal; width: calc(100% - 96px - 14px); margin-left: 14px; }
+html.legacy .tile .art svg, html.legacy .tile .art canvas { margin: 0 auto; }
+html.legacy .tabs > *, html.legacy .tools > * { -webkit-flex-shrink: 0; flex-shrink: 0; }
+html.legacy .opt > *, html.legacy .dopt > *, html.legacy .shapeBtn > *, html.legacy .jcard > * { max-width: 100%; }
+html.legacy .dopt img { height: auto; }
+html.legacy .pcard .band { margin-left: -8px; margin-right: -8px; }
+@media (min-width: 720px) {
+  /* home: three tiles side by side */
+  html.legacy .tiles > :nth-child(-n+3) { margin-top: 0; }
+  html.legacy .tiles > .tile { white-space: normal; text-align: center; }
+  html.legacy .tile > .art { display: block; width: auto; height: 160px; }
+  html.legacy .tile > .txt { display: block; width: auto; margin: 10px 0 0; }
+  /* players: 4 across */
+  html.legacy .pgrid > :nth-child(n+3) { margin-top: 0; }
+  html.legacy .pgrid > :nth-child(n+5) { margin-top: 14px; }
+  /* shapes: 3 across */
+  html.legacy .shapes > :nth-child(n+3) { margin-top: 0; }
+  html.legacy .shapes > :nth-child(n+4) { margin-top: 14px; }
+  /* client jobs: 2 across */
+  html.legacy .jobs > :nth-child(-n+2) { margin-top: 0; }
+  html.legacy #caseStudio .panel { -webkit-flex: 1 1 auto; flex: 1 1 auto; min-height: 0; }
+  html.legacy .themeCard, html.legacy #theme .btn { width: 560px; max-width: 100%; }
+}
+/* Dream Rooms client cards: picture left, words right */
+html.legacy .jcard { white-space: nowrap; }
+html.legacy .jcard > .jart { display: inline-block; vertical-align: middle; width: 76px; line-height: 76px; text-align: center; }
+html.legacy .jcard > .jart svg { vertical-align: top; }
+html.legacy .jcard > .jtxt { display: inline-block; vertical-align: middle; white-space: normal; width: calc(100% - 76px - 12px); margin-left: 12px; }
+html.legacy .jtxt > * { display: block; }
