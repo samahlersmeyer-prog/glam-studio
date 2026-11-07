@@ -5973,7 +5973,7 @@ function loadThree() {
   return new Promise(function (res, rej) {
     if (window.THREE) return res();
     var s = document.createElement('script');
-    s.src = 'legacy/three.js?v=3e8362f9c1';
+    s.src = 'three.js?v=3e8362f9c1';
     s.onload = function () {
       return res();
     };
@@ -7821,8 +7821,8 @@ function renderPlayers() {
   var h = PROFILES.map(function (p) {
     var st = store.get("glam_".concat(p.id, "_stars"), 0) + (store.get("glam_".concat(p.id, "_unlocked"), null) ? 0 : 5),
       col = PCOL[p.c % PCOL.length];
-    if (pEdit) return "<div class=\"pcard\" style=\"--pc:".concat(col, "\"><div class=\"band\">").concat(lookFor(p.id), "</div><input id=\"pn_").concat(p.id, "\" maxlength=\"14\" value=\"").concat(esc(p.name), "\" aria-label=\"Name\"><div class=\"acts\"><button class=\"go\" data-save=\"").concat(p.id, "\">Save</button>").concat(PROFILES.length > 1 ? "<button data-del=\"".concat(p.id, "\">Remove</button>") : '', "</div></div>");
-    return "<button class=\"pcard\" data-p=\"".concat(p.id, "\" style=\"--pc:").concat(col, "\"><div class=\"band\">").concat(lookFor(p.id), "</div><b>").concat(esc(p.name), "</b><small>\u2605 ").concat(st, " stars</small></button>");
+    if (pEdit) return "<div class=\"pcard\" style=\"--pc:".concat(col, "\"><div class=\"band\" style=\"background:").concat(col, "\">").concat(lookFor(p.id), "</div><input id=\"pn_").concat(p.id, "\" maxlength=\"14\" value=\"").concat(esc(p.name), "\" aria-label=\"Name\"><div class=\"acts\"><button class=\"go\" data-save=\"").concat(p.id, "\">Save</button>").concat(PROFILES.length > 1 ? "<button data-del=\"".concat(p.id, "\">Remove</button>") : '', "</div></div>");
+    return "<button class=\"pcard\" data-p=\"".concat(p.id, "\" style=\"--pc:").concat(col, "\"><div class=\"band\" style=\"background:").concat(col, "\">").concat(lookFor(p.id), "</div><b>").concat(esc(p.name), "</b><small>\u2605 ").concat(st, " stars</small></button>");
   }).join('');
   if (PROFILES.length < 6) h += pAdding ? "<div class=\"pcard add\"><span>New player</span><input id=\"pn_new\" maxlength=\"14\" placeholder=\"Name\" aria-label=\"New player name\"><div class=\"acts\"><button class=\"go\" data-add>Add</button><button data-cancel>Cancel</button></div></div>" : "<button class=\"pcard add\" data-new><span class=\"plus\">+</span>Add player</button>";
   $('#pgrid').innerHTML = h;

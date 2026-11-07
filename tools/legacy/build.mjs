@@ -4,7 +4,7 @@
 //   - vendor/three.min.js            -> legacy/three.js  (Babel down to ES5; Dream Rooms loads it from there)
 //   - polyfills + shim.js            -> legacy/poly.js
 //   - the big <style> in index.html  -> legacy/styles.css (grid/gap/clamp/inset rewritten to old flexbox CSS, then legacy.css)
-//   - index.html                     -> legacy/index.html (base href="../", no service worker, Application Cache for offline)
+//   - index.html                     -> legacy/index.html (paths fixed for the legacy/ folder, no service worker, Application Cache for offline)
 import fs from "fs";
 import path from "path";
 import crypto from "crypto";
@@ -68,7 +68,8 @@ write("three.js", three);
 
 // app: point Dream Rooms at the ES5 three.js, and go easier on the old iPad's GPU
 must(appJs, "s.src='vendor/three.min.js'", "three.js loader");
-appJs = appJs.replace("s.src='vendor/three.min.js'", `s.src='legacy/three.js?v=${threeV}'`);
+appJs = appJs.replace("s.src='vendor/three.min.js'", `s.src='three.js?v=${threeV}'`);
+appJs = appJs.split('style="--pc:${col}"><div class="band"').join('style="--pc:${col}"><div class="band" style="background:${col}"');
 must(appJs, "new THREE.WebGLRenderer({antialias:true,alpha:true})", "3D renderer setup");
 appJs = appJs.replace("new THREE.WebGLRenderer({antialias:true,alpha:true})", "new THREE.WebGLRenderer({antialias:false,alpha:true})");
 must(appJs, "sun.shadow.mapSize.set(2048,2048)", "shadow size");
@@ -278,13 +279,15 @@ write("poly.js", poly);
 
 // ---------- HTML ----------
 const cssV = h(css), polyV = h(poly), appV = h(app);
-html = html.replace(styleM[0], `<link rel="stylesheet" href="legacy/styles.css?v=${cssV}">`);
-html = html.replace(scriptM[0], `<script src="legacy/poly.js?v=${polyV}"></script>\n<script src="legacy/app.js?v=${appV}"></script>`);
+html = html.replace(styleM[0], `<link rel="stylesheet" href="styles.css?v=${cssV}">`);
+html = html.replace(scriptM[0], `<script src="poly.js?v=${polyV}"></script>\n<script src="app.js?v=${appV}"></script>`);
 html = html.replace(/<script>\s*\/\/ Keep the installed app up to date[\s\S]*?<\/script>\s*/, "");
 html = html.replace(/<script>\s*\/\/ Old iPad\?[\s\S]*?<\/script>\s*/, "");
 html = html.replace(/<link rel="manifest"[^>]*>\s*/, "");
 must(html, "<head>\n<meta charset=\"utf-8\">", "head");
-html = html.replace("<head>\n<meta charset=\"utf-8\">", "<head>\n<!-- Built by tools/legacy/build.mjs from index.html. Don't edit; run python3 tools/stamp.py. -->\n<meta charset=\"utf-8\">\n<base href=\"../\">");
+html = html.replace("<head>\n<meta charset=\"utf-8\">", "<head>\n<!-- Built by tools/legacy/build.mjs from index.html. Don't edit; run python3 tools/stamp.py. -->\n<meta charset=\"utf-8\">");
+// No <base href>: on old Safari it breaks SVG url(#gradient) fills (characters came out black). Point the shared files up a folder instead.
+html = html.replace(/(href|src)="((?:fonts|vendor)\/[^"]*|apple-touch-icon\.png|icon-\d+\.png)"/g, '$1="../$2"');
 // iOS 9 zooms on double-tap; old Safari still honors user-scalable=no.
 html = html.replace(/<meta name="viewport" content="[^"]*">/, '<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">');
 if (/serviceWorker/.test(html)) throw new Error("legacy: service worker script still in page");
@@ -302,7 +305,7 @@ for (const u of cacheList) { const f = path.join(OUT, u.split("?")[0]); if (!fs.
 const fontBytes = FONTS.map(n => read("fonts/" + n)).join("") + read("fonts/fonts.css");
 const manifest = "CACHE MANIFEST\n# " + h(html + cacheList.join("\n") + fontBytes) + "\n\nCACHE:\n" + cacheList.join("\n") + "\n\nNETWORK:\n*\n";
 write("manifest.appcache", manifest);
-// absolute path: the page's <base href="../"> isn't read yet when <html manifest> is
+// absolute path so it never depends on where the page was opened from
 must(html, '<html lang="en">', "html tag");
 html = html.replace('<html lang="en">', '<html lang="en" class="legacy" manifest="/glam-studio/legacy/manifest.appcache">');
 // when a newer version has downloaded, switch to it (right away if just opened, else next time the iPad wakes it)

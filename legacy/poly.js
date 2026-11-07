@@ -11851,7 +11851,15 @@ try {
       for (i = 0; i < kids.length; i++) { var k = kids[i]; if (k === left || k === top) continue; setS(k, "marginLeft", (lw + cfg.cg) + "px"); }
     }
   }
-  function fit() { try { twoCol(); } catch (e) {} try { autoGrids(); } catch (e) {} if (window.__lgCheckSizes) window.__lgCheckSizes(); }
+  // color swatches set their color as an inline --c custom property; some old Safaris drop that, so paint it directly too
+  function swatches() {
+    var els = document.querySelectorAll('.sw[style*="--c"]');
+    for (var i = 0; i < els.length; i++) {
+      var e = els[i], st = e.getAttribute("style") || "", m = st.match(/--c:\s*([^;]+)/);
+      if (m && !/(^|;)\s*background/.test(st.replace(/--c:[^;]*/, ""))) setS(e, "backgroundColor", m[1].trim());
+    }
+  }
+  function fit() { try { twoCol(); } catch (e) {} try { autoGrids(); } catch (e) {} try { swatches(); } catch (e) {} if (window.__lgCheckSizes) window.__lgCheckSizes(); }
   var queued = false;
   function soon() { if (queued) return; queued = true; requestAnimationFrame(function () { queued = false; fit(); }); }
   window.__lgFit = soon;
