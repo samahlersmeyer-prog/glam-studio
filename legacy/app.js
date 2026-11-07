@@ -1637,7 +1637,7 @@ $('#goGal').onclick = function () {
 };
 var CW = 300,
   CH = 660,
-  S = 2;
+  S = 1;
 function mk() {
   var c = document.createElement('canvas');
   c.width = CW * S;
@@ -2679,6 +2679,14 @@ function syncCaseUI() {
   $('#undoBtn').hidden = busy;
 }
 function frame(t) {
+  try {
+    return frame0(t);
+  } catch (e) {
+    if (window.console) console.error(e);
+    raf = caseActive ? requestAnimationFrame(frame) : null;
+  }
+}
+function frame0(t) {
   if (!caseActive) {
     raf = null;
     return;
@@ -2726,9 +2734,7 @@ function frame(t) {
     dc.save();
     dc.translate(f.ox, f.oy);
     dc.scale(f.s, f.s);
-    var sheet = new Path2D();
-    sheet.rect(-14, -14, 128, 128);
-    sheet.addPath(f.path);
+    var sheet = new Path2D('M-14 -14H114V114H-14Z ' + f.d);
     dc.fillStyle = 'rgba(255,255,255,.55)';
     dc.fill(sheet, 'evenodd');
     dc.setLineDash([4 / f.s, 3 / f.s]);
@@ -3105,7 +3111,8 @@ function stencilSpray(p) {
     path: path,
     ox: ox,
     oy: oy,
-    s: s
+    s: s,
+    d: STEN[C.sten].d
   };
   for (var i = 0; i < 6; i++) setTimeout(function () {
     return tone(rnd(900, 1400), .05, 'sawtooth', .012);

@@ -75,6 +75,20 @@ write("three.js", three);
 must(appJs, "s.src='vendor/three.min.js'", "three.js loader");
 appJs = appJs.replace("s.src='vendor/three.min.js'", `s.src='three.js?v=${threeV}'`);
 appJs = appJs.split('style="--pc:${col}"><div class="band"').join('style="--pc:${col}"><div class="band" style="background:${col}"');
+// Case Craft on the old iPad:
+//  - draw the case at 1x (300x660) instead of 2x: a 2012 iPad can't redraw seven 600x1320 layers every frame
+//  - the stencil preview used Path2D.addPath, which iOS 9 doesn't have (the error froze the case); build the
+//    same "sheet with a hole" from one SVG path string instead
+//  - if a frame ever throws, keep the loop running instead of freezing the case
+must(appJs, "const CW=300,CH=660,S=2;", "case canvas size");
+appJs = appJs.replace("const CW=300,CH=660,S=2;", "const CW=300,CH=660,S=1;");
+must(appJs, "C.stenFx={path,ox,oy,s}", "stencil preview state");
+appJs = appJs.replace("C.stenFx={path,ox,oy,s}", "C.stenFx={path,ox,oy,s,d:STEN[C.sten].d}");
+must(appJs, "const sheet=new Path2D();sheet.rect(-14,-14,128,128);sheet.addPath(f.path);", "stencil sheet");
+appJs = appJs.replace("const sheet=new Path2D();sheet.rect(-14,-14,128,128);sheet.addPath(f.path);", "const sheet=new Path2D('M-14 -14H114V114H-14Z '+f.d);");
+must(appJs, "function frame(t){\n if(!caseActive){raf=null;return}", "case frame loop");
+appJs = appJs.replace("function frame(t){\n if(!caseActive){raf=null;return}", "function frame(t){try{return frame0(t)}catch(e){if(window.console)console.error(e);raf=caseActive?requestAnimationFrame(frame):null}}\nfunction frame0(t){\n if(!caseActive){raf=null;return}");
+
 must(appJs, "new THREE.WebGLRenderer({antialias:true,alpha:true})", "3D renderer setup");
 appJs = appJs.replace("new THREE.WebGLRenderer({antialias:true,alpha:true})", "new THREE.WebGLRenderer({antialias:false,alpha:true})");
 must(appJs, "sun.shadow.mapSize.set(2048,2048)", "shadow size");
