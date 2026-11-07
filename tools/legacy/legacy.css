@@ -34,3 +34,7 @@ html.legacy .jcard > .jart { display: inline-block; vertical-align: middle; widt
 html.legacy .jcard > .jart svg { vertical-align: top; }
 html.legacy .jcard > .jtxt { display: inline-block; vertical-align: middle; white-space: normal; width: calc(100% - 76px - 12px); margin-left: 12px; }
 html.legacy .jtxt > * { display: block; }
+/* iOS only delivers taps reliably to things that look clickable */
+html.legacy button, html.legacy [data-home], html.legacy label { cursor: pointer; }
+html.legacy #model, html.legacy #walker { -webkit-align-items: flex-start; align-items: flex-start; }
+html.legacy .doneImg { -webkit-align-items: center; align-items: center; }

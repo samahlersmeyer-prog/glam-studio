@@ -1063,7 +1063,7 @@ var THEMES = [{
   i: '🏖️',
   tags: ['summer', 'bright'],
   hint: ['Summery', 'Bright colors'],
-  bg: 'linear-gradient(#7fd8ff 0 58%,#3fb6d9 58% 64%,#ffe39a 64%)'
+  bg: 'linear-gradient(#7fd8ff 0,#7fd8ff 58%,#3fb6d9 58%,#3fb6d9 64%,#ffe39a 64%)'
 }, {
   n: 'Pop Star Concert',
   i: '🎤',
@@ -1081,13 +1081,13 @@ var THEMES = [{
   i: '🌷',
   tags: ['garden', 'cute', 'pastel'],
   hint: ['Garden', 'Cute', 'Pastel'],
-  bg: 'linear-gradient(#c8f1ff 0 55%,#9fe3a8 55%)'
+  bg: 'linear-gradient(#c8f1ff 0,#c8f1ff 55%,#9fe3a8 55%)'
 }, {
   n: 'Sports Day',
   i: '🏅',
   tags: ['sporty', 'casual', 'bright'],
   hint: ['Sporty', 'Comfy', 'Bright'],
-  bg: 'linear-gradient(#8fd3ff 0 50%,#5fd3a8 50% 80%,#ff8a65 80%)'
+  bg: 'linear-gradient(#8fd3ff 0,#8fd3ff 50%,#5fd3a8 50%,#5fd3a8 80%,#ff8a65 80%)'
 }];
 var JUDGES = [{
   n: 'Madame Plume',

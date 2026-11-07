@@ -34,6 +34,11 @@ if (!scriptM[0] || scriptM[0].length < 50000) throw new Error("legacy: main <scr
 const appCss = styleM[0].replace(/^<style>\n?/, "").replace(/<\/style>$/, "");
 let appJs = scriptM[0].replace(/^<script>\n?/, "").replace(/<\/script>$/, "");
 
+// Old Safari doesn't know two-position color stops ("#7fd8ff 0 58%"), which voids the whole gradient
+// (blank stage scenes). Split them into two ordinary stops: "#7fd8ff 0,#7fd8ff 58%".
+const splitStops = src => src.replace(/(#[0-9a-fA-F]{3,8}|rgba?\([^()]*\)|transparent)\s+(-?[\d.]+(?:%|px)?)\s+(-?[\d.]+(?:%|px))(?=\s*[,)])/g, "$1 $2,$1 $3");
+appJs = splitStops(appJs);
+
 // ---------- JS ----------
 const usedPolys = new Set();
 function transpile(src, compact) {
@@ -271,7 +276,7 @@ function convertCss(css) {
   return root.toString();
 }
 const legacyCss = fs.readFileSync(path.join(HERE, "legacy.css"), "utf8");
-const css = convertCss(appCss) + "\n\n/* ---- legacy.css (hand-tuned for old iPads) ---- */\n" + legacyCss;
+const css = convertCss(splitStops(appCss)) + "\n\n/* ---- legacy.css (hand-tuned for old iPads) ---- */\n" + legacyCss;
 write("styles.css", css);
 
 const poly = corejs + "\n;window.__lgAuto=" + JSON.stringify(AUTO) + ";\n" + shim;

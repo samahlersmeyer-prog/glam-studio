@@ -129,6 +129,33 @@
     };
   }
 
+  // ---------- Fast, reliable taps ----------
+  // Old iOS waits ~300ms before a tap becomes a click and sometimes drops it (taps felt dead). Fire the click
+  // ourselves the moment the finger lifts, if it barely moved, and cancel the slow native one.
+  (function () {
+    var CLICKABLE = "button, a, label, [onclick], [role=button], [data-home]";
+    var t0 = 0, x0 = 0, y0 = 0, moved = false, startEl = null;
+    document.addEventListener("touchstart", function (e) {
+      if (e.touches.length !== 1) { startEl = null; return; }
+      var p = e.touches[0]; t0 = Date.now(); x0 = p.clientX; y0 = p.clientY; moved = false; startEl = e.target;
+    }, false);
+    document.addEventListener("touchmove", function (e) {
+      var p = e.touches[0]; if (p && (Math.abs(p.clientX - x0) > 10 || Math.abs(p.clientY - y0) > 10)) moved = true;
+    }, false);
+    document.addEventListener("touchend", function (e) {
+      var el = startEl; startEl = null;
+      if (!el || moved || Date.now() - t0 > 800 || e.defaultPrevented) return;
+      if (el.nodeType !== 1) el = el.parentNode;
+      var c = el && el.closest ? el.closest(CLICKABLE) : null;
+      if (!c || c.disabled) return;
+      var tg = el.tagName; if (tg === "INPUT" || tg === "TEXTAREA" || tg === "SELECT") return;
+      e.preventDefault();
+      var p = e.changedTouches[0], ev = document.createEvent("MouseEvents");
+      ev.initMouseEvent("click", true, true, window, 1, p.screenX, p.screenY, p.clientX, p.clientY, false, false, false, false, 0, null);
+      el.dispatchEvent(ev);
+    }, false);
+  })();
+
   // ---------- Layout the old CSS can't do ----------
   var AUTO = window.__lgAuto || [];
   var TWO = {
@@ -191,7 +218,29 @@
       if (m && !/(^|;)\s*background/.test(st.replace(/--c:[^;]*/, ""))) setS(e, "backgroundColor", m[1].trim());
     }
   }
-  function fit() { try { twoCol(); } catch (e) {} try { autoGrids(); } catch (e) {} try { swatches(); } catch (e) {} if (window.__lgCheckSizes) window.__lgCheckSizes(); }
+  // Pictures sized "height: 100%" inside flex boxes come out 0 tall on old Safari (the model vanished).
+  // Size them in pixels from their box, keeping their shape.
+  var FILL = ["#model > svg", "#walker > svg", "#caseCv", ".doneImg > img"];
+  function aspect(e) {
+    if (e.tagName === "CANVAS") return e.width && e.height ? e.width / e.height : 0;
+    if (e.tagName === "IMG") return e.naturalWidth && e.naturalHeight ? e.naturalWidth / e.naturalHeight : 0;
+    var vb = (e.getAttribute("viewBox") || "").split(/[\s,]+/);
+    return vb.length === 4 && +vb[3] ? +vb[2] / +vb[3] : 0;
+  }
+  function fills() {
+    for (var i = 0; i < FILL.length; i++) {
+      var els = document.querySelectorAll(FILL[i]);
+      for (var j = 0; j < els.length; j++) {
+        var e = els[j], box = e.parentNode, cs = getComputedStyle(box), a = aspect(e);
+        var bh = box.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom), bw = box.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
+        if (!a || bh <= 0 || bw <= 0) continue;
+        var hh = bh, ww = hh * a; if (ww > bw) { ww = bw; hh = ww / a; }
+        setS(e, "height", Math.floor(hh) + "px"); setS(e, "width", Math.floor(ww) + "px"); setS(e, "maxHeight", "none"); setS(e, "maxWidth", "none");
+        if (e.tagName === "IMG" && !e.__lgLoad) { e.__lgLoad = 1; e.addEventListener("load", soon); }
+      }
+    }
+  }
+  function fit() { try { twoCol(); } catch (e) {} try { autoGrids(); } catch (e) {} try { swatches(); } catch (e) {} try { fills(); } catch (e) {} if (window.__lgCheckSizes) window.__lgCheckSizes(); }
   var queued = false;
   function soon() { if (queued) return; queued = true; requestAnimationFrame(function () { queued = false; fit(); }); }
   window.__lgFit = soon;
