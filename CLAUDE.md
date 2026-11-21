@@ -17,3 +17,12 @@ Sam's game app for his daughters (Junie and Josie): Runway Stars, Case Craft, Dr
 - `tools/legacy/legacy.css`: hand fixes (buttons can't be flex boxes on old Safari: home tiles, client cards). If a new layout looks broken on the iPad, fix it there.
 - Offline via `legacy/manifest.appcache` (old Application Cache); a new version swaps in on the next open. The iPad's home-screen icon should point at the `/legacy/` link.
 - Build checks: anything newer than ES5 fails the build; renamed hooks it patches (three.js loader, renderer/shadow setup) fail loudly.
+
+## Skills (check these first)
+This repo ships skills in `.claude/skills/` (brainstorming executing-plans impeccable ponytail ponytail-audit ponytail-review systematic-debugging verification-before-completion writing-plans ). Before starting a task, check which apply, read that SKILL.md, and follow it.
+- **ponytail** — every coding task: smallest change that fully works; reuse what's already here. `ponytail-review` / `ponytail-audit` to trim bloat.
+- **brainstorming → writing-plans → executing-plans** — new features or anything bigger than a quick fix.
+- **systematic-debugging** — any bug: find the root cause before changing code.
+- **verification-before-completion** — test it before calling it done.
+- **impeccable** — any UI work: new screens, polish, `/impeccable audit`. Prefer it over frontend-design.
+
